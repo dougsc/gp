@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="/static/vendor/bootstrap-3.3.2-dist/css/bootstrap.min.css">
+  <script src="/static/vendor/jquery/jquery-1.11.2.min.js"></script>
+  <script src="/static/vendor/bootstrap-3.3.2-dist/js/bootstrap.min.js"></script>
+  <script language="javascript" type="text/javascript" src="/static/vendor/flotr2/flotr2.min.js"></script>
+  <script language="javascript" type="text/javascript">
+$(document).ready(function() {
+  draw_line_graph('lowest_error', 'lowest-error');
+  draw_line_graph('target_samples', 'target-samples');
+  draw_line_graph('actual_samples', 'actual-samples');
+  draw_tree('best-tree');
+});
+
+function draw_tree(container) {
+  $.getJSON("/tree/latest", function(data, status) {
+    console.log("status: " + status);
+    $("#"+container).html(data.tree);
+  });
+}
+
+function draw_line_graph(path, container) {
+  $.getJSON("/graph/line/" + path, function(data, status) {
+    console.log("status: " + status);
+    graph_data = [];
+    data.data.forEach(function(sample) {
+      graph_data.push([sample.index, (sample.value || sample.error)]);
+    });
+
+    options = { HtmlText : false,
+                title: data.title,
+                lines: { show: true },
+                xaxis: { title: data.x_title },
+                yaxis: { title: data.y_title },
+              };
+    gd = [{ data: graph_data, label: data.data_label }];
+    graph = Flotr.draw(document.getElementById(container), gd, options)
+  });
+}
+  </script>
+</head>
+<body>
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-6">
+        <div id="target-samples" style="height:500px"></div>
+      </div>
+      <div class="col-sm-6">
+        <div id="actual-samples" style="height:500px"></div>
+      </div>
+    </div>
+    <div class="row">
+      <div id="lowest-error" style="height:500px"></div>
+    </div>
+    <div class="row">
+      <div class="well">
+        <div id="best-tree"></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
